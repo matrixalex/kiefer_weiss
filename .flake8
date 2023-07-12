@@ -1,0 +1,10 @@
+[flake8]
+ignore = D203, D104, D100, I201
+exclude =
+    .git,
+    __pychache__,
+    venv,
+    env,
+    old,
+    build,
+    dist
