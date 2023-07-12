@@ -34,7 +34,18 @@ def modified_kw(horizon,lam0,lam1,theta0,theta1,probability):
             lagr_n = np.minimum(lam0*prob0, lam1*prob1)
             x = np.arange(n+2)
             
-            h = lagr[n+1]/(n+1)*(n+1-x)
+            h = (lagr[n+1]/(n+1)*(n+1-x))[:(n+1)]
+            t = (lagr[n+1]/(n+1)*(x))[(n+1):]
+            
+            lagr[n] = np.minimum(pmf(n, th) + h + t, lagr_n)
+            accept[n] = lam0*prob0>=lam1*prob1
+            cont[n] = lagr[n]<lagr_n
+            
+    return(np.concatenate(cont,accept),axis=0)
+            
+    
+            
+            
             
     
    
