@@ -37,7 +37,7 @@ def modified_kw(horizon,lam0,lam1,th0,th1,th):
             
             lagr[n] = np.hstack((np.minimum(pmf(n, th) + h + t, lagr_n),np.zeros(horizon-n)))
             accept[n] = np.hstack((lam0*z0>=lam1*z1,np.zeros(horizon-n)))
-            #cont[n] = np.hstack((lagr[n]<lagr_n,np.zeros(horizon-n)))
+            cont[n] = np.hstack((lagr[n]<lagr_n,np.zeros(horizon-n)))
             
     return(cont,accept)
             
