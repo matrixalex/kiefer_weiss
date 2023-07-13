@@ -1,11 +1,5 @@
-from scipy.stats import binom
 import numpy as np
-
-
-def pmf(sample_number,th): 
-    """ binomial probability mass function"""
-    success_number = np.arange(0,sample_number+1)
-    return binom.pmf(success_number,sample_number,th)
+from utils import pmf
 
 def modified_kw(horizon,lam0,lam1,th0,th1,th):
     z0 = pmf(horizon,th0)
