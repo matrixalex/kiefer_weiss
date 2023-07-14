@@ -6,7 +6,7 @@ from utils import pmf
 def average_sample_number(th, cont):
     """average sample number of a test giver theta = th"""
     horizon = np.shape(cont)[0]
-    asn = np.full((horizon, horizon + 1), 0)
+    asn = np.full((horizon, horizon + 1), 0.0)
 
     if (horizon == 1):
         return 1
@@ -21,10 +21,8 @@ def average_sample_number(th, cont):
             if cont[n][k] == 1.0:
                 asn[n][k] = (pmf(n+1, th) + h + t)[k]
             else:
-                asn[n][k] = 0
+                asn[n][k] = 0.0
         
-        return (1 + sum(asn[0]),asn)
+    return (1 + sum(asn[0]))
+
     
-
-
-
