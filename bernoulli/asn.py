@@ -11,19 +11,20 @@ def average_sample_number(th, cont):
     if (horizon == 1):
         return 1
     
-    for n in range(horizon - 1, 0, -1):
+    for n in range(horizon-2,-1,-1):
         x = np.arange(n + 2)
 
-        h = ((asn[n])[:n+2]/(n+1)*(n+1-x))[:(n+1)]
-        t = ((asn[n])[:n+2]/(n+1)*(x))[-(n+1):]
+        h = ((asn[n+1])[:n+2]/(n+1)*(n+1-x))[:(n+2)]
+        t = ((asn[n+1])[:n+2]/(n+1)*(x))[-(n+2):]
 
-        for k in range(horizon + 1):
+        for k in range(horizon+1):
             if cont[n][k] == 1.0:
-                asn[n] = np.hstack((pmf(n, th) + h + t, np.zeros(horizon - n)))
-            elif cont[n][k] == 0.0:
-                asn[n] = np.zeros(horizon + 1)
+                asn[n][k] = (pmf(n+1, th) + h + t)[k]
             else:
-                continue
+                asn[n][k] = 0
         
-        return (1 + asn[1][1] + asn[1][horizon])
+        return (1 + sum(asn[0]),asn)
+    
+
+
 
