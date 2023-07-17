@@ -1,5 +1,4 @@
 import numpy as np
-
 from utils import pmf
 
 
@@ -33,6 +32,3 @@ def average_sample_number(th: float, cont: np.array) -> float:
                 asn[n][i] = tmp[i]
 
     return 1 + np.sum(asn[0])
-
-
-

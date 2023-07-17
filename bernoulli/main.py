@@ -6,7 +6,7 @@ from utils import horizon_bound
 
 
 def calculcate(lam0: float, lam1: float, th0: float, th1: float) -> dict:
-    """Calculation of Kiefer-Weiss problem."""
+    """Calculate Kiefer-Weiss problem."""
     th, delta = original_kw(lam0, lam1, th0, th1)
     # th = 0.076846178793028
     # delta = -3.78467603923127E-08
