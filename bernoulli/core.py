@@ -1,9 +1,9 @@
 import numpy as np
+from typing import Tuple
+from utils import pmf
 
-from bernoulli.utils import pmf
 
-
-def modified_kw(horizon: int, lam0: float, lam1: float, th0: float, th1: float, th: float) -> (np.array, np.array):
+def modified_kw(horizon: int, lam0: float, lam1: float, th0: float, th1: float, th: float) -> Tuple[np.array, np.array]:
     """Approximate solution of modified Kiefer-Weiss problem."""
     z0 = pmf(horizon, th0)
     z1 = pmf(horizon, th1)

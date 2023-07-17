@@ -1,6 +1,6 @@
 import numpy as np
 
-from bernoulli.utils import pmf
+from utils import pmf
 
 
 def average_sample_number(th: float, cont: np.array) -> float:
@@ -33,6 +33,4 @@ def average_sample_number(th: float, cont: np.array) -> float:
     return 1 + np.sum(asn[0])
 
 
-my_arr = []
-average_sample_number(my_arr, False)
 

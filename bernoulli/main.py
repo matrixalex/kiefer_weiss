@@ -1,8 +1,8 @@
-from bernoulli.asn import average_sample_number
-from bernoulli.core import modified_kw
-from bernoulli.oc import operating_characteristic
-from bernoulli.original_kw import original_kw
-from bernoulli.utils import horizon_bound
+from asn import average_sample_number
+from core import modified_kw
+from oc import operating_characteristic
+from original_kw import original_kw
+from utils import horizon_bound
 
 
 def calculcate(lam0: float, lam1: float, th0: float, th1: float) -> dict:

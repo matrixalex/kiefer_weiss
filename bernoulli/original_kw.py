@@ -1,9 +1,10 @@
 import scipy.optimize
 import scipy.stats
+from typing import Tuple
 
-from bernoulli.asn import average_sample_number
-from bernoulli.core import modified_kw
-from bernoulli.utils import horizon_bound
+from asn import average_sample_number
+from core import modified_kw
+from utils import horizon_bound
 from config import DEFAULT_OPTIMIZATION_PRECISION_LEVEL, MAX_OPTIMIZATION_COUNT
 
 
@@ -12,7 +13,7 @@ def negative_average_sample_number(x, cont):
     return -1 * average_sample_number(x, cont)
 
 
-def original_kw(lam0, lam1, th0, th1, tol=DEFAULT_OPTIMIZATION_PRECISION_LEVEL, horizon=None) -> (float, float):
+def original_kw(lam0, lam1, th0, th1, tol=DEFAULT_OPTIMIZATION_PRECISION_LEVEL, horizon=None) -> Tuple[float, float]:
     """
     Approximate Kiefer-Weiss problem solution.
 
