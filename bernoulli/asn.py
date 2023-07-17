@@ -13,6 +13,8 @@ def average_sample_number(th: float, cont: np.array) -> float:
     """
     horizon = len(cont)
     asn = np.zeros((horizon, horizon + 1), dtype=np.float64)
+    if horizon == 1:
+        return 1
 
     for n in range(horizon - 2, -1, -1):
         # recurrent calculation

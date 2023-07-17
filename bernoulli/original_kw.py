@@ -19,11 +19,12 @@ def original_kw(lam0, lam1, th0, th1, tol=DEFAULT_OPTIMIZATION_PRECISION_LEVEL, 
 
     Returns optimal distribution parameter and average sample number for this value.
     """
+
     def delta(x):
-        nonlocal horizon
+        nonlocal horizon, lam0, lam1, th0, th1
         if horizon is None:
             horizon = horizon_bound(lam0, lam1, th0, th1, x)
-
+        print(horizon, lam0, lam1, th0, th1, x)
         cont, accept = modified_kw(horizon, lam0, lam1, th0, th1, x)
         # TODO: in ASN func first argument must be x!!! This is necessary for optimizer
         # TODO: add '-' before func, now func calculates minimum value

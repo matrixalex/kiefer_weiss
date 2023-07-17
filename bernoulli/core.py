@@ -28,4 +28,4 @@ def modified_kw(horizon: int, lam0: float, lam1: float, th0: float, th1: float, 
             cont[n - 1][:current_size] = lagr_p[:n + 1] < tmp
             lagr[n - 1] = lagr_p
 
-        return cont, accept
+    return cont, accept
