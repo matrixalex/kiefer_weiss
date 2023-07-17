@@ -1,28 +1,38 @@
 import numpy as np
-from core import modified_kw
-from utils import pmf
+
+from bernoulli.utils import pmf
 
 
-def average_sample_number(th, cont):
-    """average sample number of a test giver theta = th"""
-    horizon = np.shape(cont)[0]
-    asn = np.full((horizon, horizon + 1), 0.0)
+def average_sample_number(th: float, cont: np.array) -> float:
+    """
+    Average sample number (ASN) approximate calculation under given theta.
 
-    if (horizon == 1):
-        return 1
-    
-    for n in range(horizon-2,-1,-1):
-        x = np.arange(n + 2)
+    :param th: float - theta, must be in [0,1]
+    :param cont: nparray - boolean matrix from modified_kw
+    :return: float - approximate calculation of ASN
+    """
+    horizon = len(cont)
+    asn = np.zeros((horizon, horizon + 1), dtype=np.float64)
 
-        h = ((asn[n+1])[:n+2]/(n+1)*(n+1-x))[:(n+2)]
-        t = ((asn[n+1])[:n+2]/(n+1)*(x))[-(n+2):]
+    for n in range(horizon - 2, -1, -1):
+        # recurrent calculation
+        x = np.arange(n + 3)
+        x_size = x.size
+        asn_n = asn[n + 1][:x_size]  # take values from last step
+        asn_n = asn_n / (n + 2)
 
-        for k in range(horizon+1):
-            if cont[n][k] == 1.0:
-                asn[n][k] = (pmf(n+1, th) + h + t)[k]
-            else:
-                asn[n][k] = 0.0
-        
-    return (1 + sum(asn[0]))
+        h = (asn_n * (n + 2 - x))[:x_size - 1]
+        t = (asn_n * x)[-(x_size - 1):]
+        pmf0 = pmf(n + 1, th)  # vector of success probabilities from 0 to n + 1 inclusive
+        tmp = h + t + pmf0
+        cont_vector = cont[n]
+        for i in range(n + 2):
+            if cont_vector[i]:
+                asn[n][i] = tmp[i]
 
-    
+    return 1 + np.sum(asn[0])
+
+
+my_arr = []
+average_sample_number(my_arr, False)
+
