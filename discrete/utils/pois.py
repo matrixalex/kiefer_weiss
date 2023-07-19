@@ -14,7 +14,7 @@ def cdf(s, n, th):
     return res
 
 def rngen(th,n):
-    res =  poisson.rvs(th,n)
+    res =  poisson.rvs(th,size = n)
     return res
 
 def d(n, s, x):
