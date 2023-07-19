@@ -1,6 +1,5 @@
 import numpy as np
 
-
 size = 1
 
 def hbound(l0, l1, th0, th1, th):

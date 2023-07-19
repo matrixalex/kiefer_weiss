@@ -1,5 +1,6 @@
+from math import ceil, floor
+
 import numpy as np
-from math import floor, ceil
 
 size = 1
 

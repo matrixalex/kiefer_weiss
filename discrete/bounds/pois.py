@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def hbound(l0,l1,th0,th1,th):
     res = np.floor(
         (np.log(l0) / (np.log(th) - np.log(th0)) + np.log(l1) /  (np.log(th1) - np.log(th))) /
@@ -14,7 +15,7 @@ def ubound(n,l0,th0,th):
     return res
 
 def lbound(n, l1, th1, th):
-    res =  np.ceil(
+    res = np.ceil(
         max(
             0,
             -np.log(l1) / np.log(th1 / th) + n * (th1 - th) / np.log(th1 / th)

@@ -64,7 +64,7 @@ def original_kw(lam0, lam1, th0, th1, tol=DEFAULT_OPTIMIZATION_PRECISION_LEVEL, 
         )
 
         return value - ASN_old
-    t = time.time()
+
     x_min, value, iters = golden(
         delta,
         brack=(opt1, opt2),

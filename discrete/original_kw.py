@@ -1,4 +1,3 @@
-import time
 from typing import Tuple
 
 import numpy as np
@@ -46,7 +45,6 @@ def original_kw(lam0, lam1, th0, th1, tol=DEFAULT_OPTIMIZATION_PRECISION_LEVEL, 
     opt1 = th0 + golden_constant * (th1 - th0)
     opt1, opt2 = min(opt1, opt2), max(opt1, opt2)
 
-
     def delta(x):
         nonlocal horizon, lam0, lam1, th0, th1, opt1, opt2
         if horizon is None:
@@ -64,7 +62,6 @@ def original_kw(lam0, lam1, th0, th1, tol=DEFAULT_OPTIMIZATION_PRECISION_LEVEL, 
         )
 
         return value - ASN_old
-    t = time.time()
     x_min, value, iters = golden(
         delta,
         brack=(opt1, opt2),
