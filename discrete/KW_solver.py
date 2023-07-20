@@ -39,8 +39,7 @@ class KieferWeissSolver:
     
 class StepHelper:
     
-    def __init__(self,stepdata, n, s, l0, l1, th0, th1, th, dist):
-        self.stepdata = stepdata
+    def __init__(self, n, s, l0, l1, th0, th1, th, dist):
         self.n = n
         self.s = s
         self.l0 = l0
@@ -50,16 +49,16 @@ class StepHelper:
         self.th = th
         self.dist = dist
     
-    def back_step_int(self):
+    def back_step_int(self, stepdata):
         
         def incorp(x):
-            if not self.stepdata.laststep:
+            if not stepdata.laststep:
                 if (
-                    x >= self.stepdata.frm 
+                    x >= stepdata.frm 
                     and 
-                    x - self.stepdata.frm + 1 <= self.stepdata.length
+                    x - stepdata.frm + 1 <= stepdata.length
                     ):
-                    return(self.stepdata.val[x - self.stepdata.frm + 1])
+                    return(stepdata.val[x - stepdata.frm + 1])
                 else:
                     return(
                         min(
@@ -80,7 +79,7 @@ class StepHelper:
            
             while True:
                 sumold = sum
-                sum = sum + incorp(self.s + self.k) * d(self.n, self.s, self.k)
+                sum = sum + incorp(self.s + self.k) * self.dist.d(self.n, self.s, self.k)
                 if(sum == sumold):
                     break
                 k = k + 1
