@@ -1,6 +1,6 @@
 from scipy.stats import nbinom
 
-from discrete.utils.core import BaseDistributionHandler
+from utils.core import BaseDistributionHandler
 
 
 class NBinomDistributionHandler(BaseDistributionHandler):
