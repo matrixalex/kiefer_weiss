@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import binom
 from core import BaseDistributionHandler
+from math import comb
 
 
 
@@ -39,3 +40,32 @@ class BinomDistributionHandler(BaseDistributionHandler):
                     (np.log((1 - th0)/(1 - th))/np.log(th0/th * (1 - th)/(1 - th0)) -
                     np.log((1 - th1)/(1 - th))/np.log(th1/th * (1 - th)/(1 - th1))
                     ) / size)
+    
+    @staticmethod
+    def d(n, s, x, size = 1):
+        if (s > (n - 1) * size):
+            return 0
+        
+        if (x > size):
+            return 0
+        
+        res = comb(size, x)
+        a = n * size - size - s + 1
+        b = a + s
+
+        if(x < size):
+            for i in range(size - x):
+                res = res * a / b
+                a = a + 1
+                b = b + 1
+            
+        a = s + 1
+
+        if x > 0:
+            for i in range(x):
+                res = res * a / b
+                a = a + 1
+                b = b + 1
+
+        return res
+
