@@ -30,7 +30,7 @@ class PoissonDistributionHandler(BaseDistributionHandler):
         return res
     
     @staticmethod
-    def hbound(l0,l1,th0,th1,th):
+    def hbound(l0,l1,th0,th1,th, size = 1):
         res = np.floor(
             (np.log(l0) / (np.log(th) - np.log(th0)) + np.log(l1) /  (np.log(th1) - np.log(th))) /
         ((th1 - th)/(np.log(th1) - np.log(th)) - (th - th0)/(np.log(th) - np.log(th0)))
@@ -38,14 +38,14 @@ class PoissonDistributionHandler(BaseDistributionHandler):
         return res
     
     @staticmethod
-    def ubound(n,l0,th0,th):
+    def ubound(n,l0,th0,th, size = 1):
         res = np.floor(
             np.log(l0) / np.log(th / th0) + n * (th - th0) / np.log(th / th0)
             )
         return res
     
     @staticmethod
-    def lbound(n, l1, th1, th):
+    def lbound(n, l1, th1, th, size = 1):
         res = np.ceil(
             max(
                 0,
