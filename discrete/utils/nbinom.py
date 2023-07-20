@@ -1,5 +1,5 @@
 from scipy.stats import nbinom
-from core import BaseDistributionHandler
+from utils.core import BaseDistributionHandler
 import numpy as np
 import math
 

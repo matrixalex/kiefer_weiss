@@ -2,7 +2,7 @@ from scipy.stats import poisson
 import numpy as np
 import math
 
-from core import BaseDistributionHandler
+from utils.core import BaseDistributionHandler
 
 
 class PoissonDistributionHandler(BaseDistributionHandler):
