@@ -1,6 +1,7 @@
 from scipy.stats import nbinom
 from core import BaseDistributionHandler
 import numpy as np
+import math
 
 
 class NBinomDistributionHandler(BaseDistributionHandler):
@@ -53,4 +54,36 @@ class NBinomDistributionHandler(BaseDistributionHandler):
         (np.log(l0) + n * size * np.log((th + 1)/(th0 + 1))) / (np.log((th) / (th0) * (th0 + 1) / (th + 1)))
         )
         return res
+    
+    @staticmethod
+    def d(n, s, x, size = 1):
+        if n == 1:
+            return 1
+        res = math.comb(size + x - 1, x)
+        a = n * size - size
+        b = a + s
+        
+        for i in np.arange(1, size + 1, 1):
+            res = res * a/b
+            a = a + 1
+            b = b + 1
+            
+        a = s + 1
+       
+        if x > 0:
+           
+            for i in np.arange(1, x + 1, 1):
+                res = res * a/b
+                a = a + 1
+                b = b + 1
+                      
+        return res
+                
+                
+        
+        
+    
+   
+
+  
 

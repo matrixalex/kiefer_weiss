@@ -1,5 +1,6 @@
 from scipy.stats import poisson
 import numpy as np
+import math
 
 from core import BaseDistributionHandler
 
@@ -53,5 +54,13 @@ class PoissonDistributionHandler(BaseDistributionHandler):
                 )
             )
         return(res)
+    
+    @staticmethod
+    def d(n, s, x, size = 1):
+        if n == 1:
+            return 1
+        res = math.comb(x + s, s) * ((1 - 1/n)**s)/n**x
+        return res
+        
 
 
