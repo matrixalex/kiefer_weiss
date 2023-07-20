@@ -1,10 +1,10 @@
 from typing import Type
 
 from config import DistributionTypeEnum
-from discrete.utils.binom import BinomDistributionHandler
-from discrete.utils.core import BaseDistributionHandler
-from discrete.utils.nbinom import NBinomDistributionHandler
-from discrete.utils.pois import PoissonDistributionHandler
+from utils.binom import BinomDistributionHandler
+from utils.core import BaseDistributionHandler
+from utils.nbinom import NBinomDistributionHandler
+from utils.pois import PoissonDistributionHandler
 
 
 class DistributionController:
