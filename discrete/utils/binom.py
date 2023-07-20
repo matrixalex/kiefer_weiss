@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.stats import binom
-from utils.core import BaseDistributionHandler
+from core import BaseDistributionHandler
 
 
 
