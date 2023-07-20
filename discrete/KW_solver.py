@@ -1,4 +1,5 @@
 from helpers import DistributionController
+import numpy as np
 
 class KieferWeissSolver:
     
@@ -49,6 +50,7 @@ class StepHelper:
         self.th = th
         self.dist = dist
     
+    @staticmethod
     def back_step_int(self, stepdata):
         
         def incorp(x):
@@ -74,17 +76,82 @@ class StepHelper:
                         )
                     )
             
-            sum = 0
-            k = 0
+        sum = 0
+        k = 0
            
+        while True:
+            sumold = sum
+            sum = sum + incorp(self.s + self.k) * self.dist.d(self.n, self.s, self.k)
+            if(sum == sumold):
+                break
+            k = k + 1
+            
+        return sum
+        
+        def back_step_int_oc(self, stepdata):
+            
+            if not stepdata.laststep:
+                sum = self.dist.cdf(
+                    min(
+                        stepdata.frm - 1 - self.s,
+                        stepdata.acceptAt - self.s
+                        )
+                    )
+                
+                for k in np.arange(stepdata.frm - self.s,
+                                   stepdata.frm - self.s + stepdata.length, 1):
+                    if k >= 0:
+                        sum = (sum + 
+                        stepdata.val[k + self.s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                        
+            else:
+                sum = self.dist.cdf(stepdata.acceptAt - self.s, 1, self.th)
+            
+            return sum
+    
+    @staticmethod
+    def back_step_int_asn(self, stepdata):
+        if not stepdata.laststep:
+            k = 0
+            sum = 0
             while True:
-                sumold = sum
-                sum = sum + incorp(self.s + self.k) * self.dist.d(self.n, self.s, self.k)
-                if(sum == sumold):
+                if(k + self.s >= stepdata.frm and 
+                   k + self.s <= stepdata.frm + stepdata.length - 1):
+                    
+                    sum = (sum +
+                           stepdata.val[k + self.s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                
+                if k + self.s >= stepdata.frm + stepdata.length - 1:
                     break
                 k = k + 1
+            
+        else:
+            sum = 0
+        
+        return sum
+    
+    @staticmethod
+    def step_effect(self, stepdata):
+        res = (
+        StepHelper.back_step_int(stepdata, self.n + 1, self.s, self.l0, self.l1, self.th0, self.th1) +
+        self.dist.pmf(self.s, self.n, self.th) - 
+        min(
+            self.l0 * self.dist.pmf(self.s, self.n, self.th0), 
+            self.l1 * self.dist.pmf(self.s, self.n, self.th1)
+           )
+             )
+        return res
+
+            
+    
                 
-            return sum
+                    
+            
+            
+                
+           
+                
+                
                 
         
         
