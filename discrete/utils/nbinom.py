@@ -1,5 +1,5 @@
 from scipy.stats import nbinom
-
+import numpy as np
 from discrete.utils.core import BaseDistributionHandler
 
 
@@ -27,3 +27,30 @@ class NBinomDistributionHandler(BaseDistributionHandler):
         """Get p-th quantile of N-binom density function."""
         res = nbinom.ppf(p, size * n, 1 / (1 + th))
         return res
+    
+    @staticmethod
+    def hbound(l0, l1, th0, th1, th, size = 1):
+        res = np.floor(
+        (np.log(l0) * np.log(th1/th * (th + 1)/(th1 + 1)) + np.log(l1) * np.log(th/th0 * (th0 + 1)/(th + 1))) /
+        (np.log((th1 + 1)/(th + 1)) * np.log(th/th0 * (th0 + 1)/(th + 1))
+        - np.log((th + 1)/(th0 + 1)) * np.log(th1/th * (th + 1)/(th1 + 1))) / size
+        )
+        return res
+
+    @staticmethod
+    def lbound(n, l1, th1, th, size = 1):
+        res = max(
+        np.ceil(
+            (np.log(l1) + n * size * np.log((th + 1)/(th1 + 1))) / (np.log((th)/(th1) * (th1 + 1)/(th + 1)))
+            ),
+        0
+        )
+        return res
+
+    @staticmethod
+    def ubound(n, l0, th0, th, size = 1):
+        res = np.floor(
+        (np.log(l0) + n * size * np.log((th + 1)/(th0 + 1))) / (np.log((th) / (th0) * (th0 + 1) / (th + 1)))
+        )
+        return res
+
