@@ -1,5 +1,6 @@
 from helpers import DistributionController
 from step_data import StepData
+from scipy.optimize import golden
 import numpy as np
 
 class KieferWeissSolver:
@@ -19,9 +20,51 @@ class KieferWeissSolver:
         self.accept = None
         self.step_helper = StepHelper(self.l0, self.l1, self.th0, self.th1, self.th, self.dist_class)
 
+    def maximize_asn(self, test, step_size=0.01, maxiter=1000):
+        """Maximizes asn using step-by-step estimation."""
+        start, stop = self.th0, self.th1
+        iters = 0
+        best_param = None
+        best_value = None
+        for param in np.arange(start, stop, step_size):
+            iters += 1
+
+            value = self.avarage_sample_number(param, test)
+
+            if best_value is None or value > best_value:
+                best_value = value
+                best_param = param
+
+            if iters > maxiter:
+                break
+
+        return best_param, best_value
     
-    def solve_original(self):
-        pass
+    def solve_original(self, horion):
+        golden_constant = 0.2
+        opt2 = self.th0 + (1 - golden_constant) * (self.th1 - self.th0)
+        opt1 = self.th0 + golden_constant * (self.th1 - self.th0)
+        opt1, opt2 = min(opt1, opt2), max(opt1, opt2)
+
+        def delta(x):
+            nonlocal horizon, opt1, opt2
+            if horizon is None:
+                horizon = self.dist_class.hbound(self.lam0, self.lam1, self.th0, self.th1, x)
+
+            test = self.modified_kw(horizon, self.lam0, self.lam1, self.th0, self.th1, x)
+            # TODO: in ASN func first argument must be x!!! This is necessary for optimizer
+            # TODO: add '-' before func, now func calculates minimum value
+            ASN_old = self.average_sample_number(x, test)
+
+            x_min, value = self.maximize_asn(test)
+
+            return value - ASN_old
+        x_min, value, iters = golden(
+            delta,
+            brack=(opt1, opt2),
+            full_output=True,
+        )
+        return x_min, value
     
     def solve_modified(self):
         test = {}
