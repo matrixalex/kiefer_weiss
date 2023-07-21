@@ -1,5 +1,6 @@
 from helpers import DistributionController
 from step_data import StepData
+from scipy.optimize import golden
 import numpy as np
 
 class KieferWeissSolver:
@@ -19,28 +20,70 @@ class KieferWeissSolver:
         self.accept = None
         self.step_helper = StepHelper(self.l0, self.l1, self.th0, self.th1, self.th, self.dist_class)
 
+    def maximize_asn(self, test, step_size=0.01, maxiter=1000):
+        """Maximizes asn using step-by-step estimation."""
+        start, stop = self.th0, self.th1
+        iters = 0
+        best_param = None
+        best_value = None
+        for param in np.arange(start, stop, step_size):
+            iters += 1
+
+            value = self.avarage_sample_number(param, test)
+
+            if best_value is None or value > best_value:
+                best_value = value
+                best_param = param
+
+            if iters > maxiter:
+                break
+
+        return best_param, best_value
     
-    def solve_original(self):
-        pass
+    def solve_original(self, horizon):
+        golden_constant = 0.2
+        opt2 = self.th0 + (1 - golden_constant) * (self.th1 - self.th0)
+        opt1 = self.th0 + golden_constant * (self.th1 - self.th0)
+        opt1, opt2 = min(opt1, opt2), max(opt1, opt2)
+
+        def delta(x):
+            nonlocal horizon, opt1, opt2
+            if horizon is None:
+                horizon = self.dist_class.hbound(self.lam0, self.lam1, self.th0, self.th1, x)
+
+            test = self.modified_kw(x, horizon)
+            # TODO: in ASN func first argument must be x!!! This is necessary for optimizer
+            # TODO: add '-' before func, now func calculates minimum value
+            ASN_old = self.average_sample_number(x, test)
+
+            x_min, value = self.maximize_asn(test)
+
+            return value - ASN_old
+        x_min, value, iters = golden(
+            delta,
+            brack=(opt1, opt2),
+            full_output=True,
+        )
+        return x_min, value
     
-    def solve_modified(self):
+    def solve_modified(self, th, horizon = None):
         test = {}
-        if self.th1 > self.th > self.th0:
+        if self.th1 > th > self.th0:
             if self.horizon is None:
-                h = self.dist_class.hbound(self.l0, self.l1, self.th0, self.th1, self.th, self.size)
+                h = self.dist_class.hbound(self.l0, self.l1, self.th0, self.th1, th, self.size)
             else:
-                h = self.horizon
+                h = horizon
 
             while (
-                    self.dist_class.lbound(h, self.l1, self.th1, self.th, self.size) >
-                    self.dist_class.ubound(h, self.l0, self.th0, self.th, self.size)
+                    self.dist_class.lbound(h, self.l1, self.th1, th, self.size) >
+                    self.dist_class.ubound(h, self.l0, self.th0, th, self.size)
             ):
                 h -= 1
 
 
             stepdata = StepData(
                 h=h+1,
-                accept_at=self.dist_class.ubound(h + 1, self.l0, self.th0, self.th, self.size),
+                accept_at=self.dist_class.ubound(h + 1, self.l0, self.th0, th, self.size),
                 last_step=True
             )
             test[h+1] = stepdata
@@ -48,8 +91,8 @@ class KieferWeissSolver:
             while True:
                 nocont = True
                 for i in np.arange(
-                        self.dist_class.lbound(h, self.l1, self.th1, self.th, self.size),
-                        self.dist_class.ubound(h, self.l0, self.th0, self.th, self.size) + 1
+                        self.dist_class.lbound(h, self.l1, self.th1, th, self.size),
+                        self.dist_class.ubound(h, self.l0, self.th0, th, self.size) + 1
                 ):
                     if self.step_helper.step_effect(stepdata, h, i) < 0:
                         nocont = False
@@ -63,13 +106,13 @@ class KieferWeissSolver:
                     test = {}
                     stepdata = StepData(
                         h=h + 1,
-                        accept_at=self.dist_class.ubound(h, self.l0 / self.l1, self.th0, self.th, self.size),
+                        accept_at=self.dist_class.ubound(h, self.l0 / self.l1, self.th0, th, self.size),
                         last_step=True
                     )
                     test[h+1] = stepdata
                     continue
 
-                s = self.dist_class.ubound(h, self.l0, self.th0, self.th, self.size)
+                s = self.dist_class.ubound(h, self.l0, self.th0, th, self.size)
                 while self.step_helper.step_effect(stepdata, h, s) >= 0:
                     s -= 1
 
@@ -98,7 +141,7 @@ class KieferWeissSolver:
             horizon -= 1
 
         return self.step_helper.back_step_int_asn(stepdata, 0) + 1
-    
+
     def operating_characteristics(self, test):
         h = len(test)
         stepdata = t[h]
