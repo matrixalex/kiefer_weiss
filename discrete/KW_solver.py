@@ -125,25 +125,39 @@ class KieferWeissSolver:
 
         return test
 
-    def average_sample_number(self):
-        pass
-    
+    def average_sample_number(self, test):
+        horizon = len(test)
+        stepdata = test[horizon]
+
+        horizon -= 1
+        while True:
+            for i in np.arange(int(test[horizon].frm), int(test[horizon].frm + test[horizon].length)):
+                test[horizon].val[int(i - test[horizon].frm)] = self.step_helper.back_step_int_asn(stepdata, i) + 1
+            stepdata = test[horizon]
+
+            if horizon == 1:
+                break
+
+            horizon -= 1
+
+        return self.step_helper.back_step_int_asn(stepdata, 0) + 1
+
     def operating_characteristics(self, test):
         h = len(test)
         stepdata = t[h]
         h = h - 1
-        
+
         while h >= 1:
             for i in np.arange(t[h].frm, t[h].frm + t[h].length):
                 t[h].val[int(i - t[h].frm)] = self.step_helper.back_step_int_oc(stepdata, i)
             stepdata = t[h]
-            h -= 1 
-                
-        
+            h -= 1
+
+
         res =  self.step_helper.back_step_int_oc(stepdata, 0)
-        
+
         return res
-        
+
 
 
     def fill_in(self, stepdata, a, b, h):
@@ -153,7 +167,7 @@ class KieferWeissSolver:
             val2 = self.l0 * self.dist_class.pmf(i, h, self.th0)
             val3 = self.l1 * self.dist_class.pmf(i, h, self.th1)
             new_data.val[int(i - new_data.frm)] = min(val1, val2, val3)
-        new_data.accept_at = self.dist_class.ubound(h, self.l0 / self.l1, self.th0, self.th1)+1
+        new_data.accept_at = self.dist_class.ubound(h, self.l0 / self.l1, self.th0, self.th1)
         return new_data
 
     def calculate_results(self):
@@ -247,7 +261,7 @@ class StepHelper:
                    k + s <= stepdata.frm + stepdata.length - 1):
                     
                     sum = (sum +
-                           stepdata.val[k + s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                           stepdata.val[int(k + s - stepdata.frm)] * self.dist.pmf(k, 1, self.th))
                 
                 if k + s >= stepdata.frm + stepdata.length - 1:
                     break
