@@ -83,8 +83,22 @@ class KieferWeissSolver:
 
         return test
 
-    def avarage_sample_number(self):
-        pass
+    def average_sample_number(self, test):
+        horizon = len(test)
+        stepdata = test[horizon]
+
+        horizon -= 1
+        while True:
+            for i in np.arange(int(test[horizon].frm), int(test[horizon].frm + test[horizon].length)):
+                test[horizon].val[int(i - test[horizon].frm)] = self.step_helper.back_step_int_asn(stepdata, i) + 1
+            stepdata = test[horizon]
+
+            if horizon == 1:
+                break
+
+            horizon -= 1
+        
+        return self.step_helper.back_step_int_asn(stepdata, 0) + 1
     
     def operating_characteristics(self):
         pass
@@ -153,7 +167,7 @@ class StepHelper:
         while True:
             sumold = sum
             sum = sum + incorp(s + k) * self.dist.d(n, s, k)
-            if abs(sum - sumold) < 0.01:
+            if abs(sum - sumold) < 0.000000000001:
                 break
             k = k + 1
             
@@ -189,7 +203,7 @@ class StepHelper:
                    k + s <= stepdata.frm + stepdata.length - 1):
                     
                     sum = (sum +
-                           stepdata.val[k + s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                           stepdata.val[int(k + s - stepdata.frm)] * self.dist.pmf(k, 1, self.th))
                 
                 if k + s >= stepdata.frm + stepdata.length - 1:
                     break
@@ -211,9 +225,3 @@ class StepHelper:
              )
         return res
     
-
-solver = KieferWeissSolver(205, 101.101, 0.2, 0.3, th=0.25, dist_type='binom')
-
-t = solver.solve_modified()
-
-print(t[200])
