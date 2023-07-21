@@ -37,7 +37,6 @@ class KieferWeissSolver:
             ):
                 h -= 1
 
-            idx = 0
 
             stepdata = StepData(
                 h=h+1,
@@ -97,11 +96,25 @@ class KieferWeissSolver:
                 break
 
             horizon -= 1
-        
+
         return self.step_helper.back_step_int_asn(stepdata, 0) + 1
     
-    def operating_characteristics(self):
-        pass
+    def operating_characteristics(self, test):
+        h = len(test)
+        stepdata = t[h]
+        h = h - 1
+
+        while h >= 1:
+            for i in np.arange(t[h].frm, t[h].frm + t[h].length):
+                t[h].val[int(i - t[h].frm)] = self.step_helper.back_step_int_oc(stepdata, i)
+            stepdata = t[h]
+            h -= 1
+
+
+        res =  self.step_helper.back_step_int_oc(stepdata, 0)
+
+        return res
+
 
 
     def fill_in(self, stepdata, a, b, h):
@@ -179,18 +192,20 @@ class StepHelper:
             sum = self.dist.cdf(
                 min(
                     stepdata.frm - 1 - s,
-                    stepdata.acceptAt - s
-                    )
+                    stepdata.accept_at - s
+                    ),
+                1,
+                self.th
                 )
             
             for k in np.arange(stepdata.frm - s,
                                stepdata.frm - s + stepdata.length, 1):
                 if k >= 0:
                     sum = (sum + 
-                    stepdata.val[k + s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                    stepdata.val[int(k + s - stepdata.frm)] * self.dist.pmf(k, 1, self.th))
                     
         else:
-            sum = self.dist.cdf(stepdata.acceptAt - s, 1, self.th)
+            sum = self.dist.cdf(stepdata.accept_at - s, 1, self.th)
         
         return sum
     
@@ -225,3 +240,11 @@ class StepHelper:
              )
         return res
     
+
+solver = KieferWeissSolver(49, 59, 0.2, 0.4, th=0.3, dist_type='binom')
+
+t = solver.solve_modified()
+
+d = solver.operating_characteristics(t)
+
+print(t[1],d)
