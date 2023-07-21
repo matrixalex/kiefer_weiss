@@ -37,7 +37,6 @@ class KieferWeissSolver:
             ):
                 h -= 1
 
-            idx = 0
 
             stepdata = StepData(
                 h=h+1,
@@ -86,8 +85,22 @@ class KieferWeissSolver:
     def avarage_sample_number(self):
         pass
     
-    def operating_characteristics(self):
-        pass
+    def operating_characteristics(self, test):
+        h = len(test)
+        stepdata = t[h]
+        h = h - 1
+        
+        while h >= 1:
+            for i in np.arange(t[h].frm, t[h].frm + t[h].length):
+                t[h].val[int(i - t[h].frm)] = self.step_helper.back_step_int_oc(stepdata, i)
+            stepdata = t[h]
+            h -= 1 
+                
+        
+        res =  self.step_helper.back_step_int_oc(stepdata, 0)
+        
+        return res
+        
 
 
     def fill_in(self, stepdata, a, b, h):
@@ -97,7 +110,7 @@ class KieferWeissSolver:
             val2 = self.l0 * self.dist_class.pmf(i, h, self.th0)
             val3 = self.l1 * self.dist_class.pmf(i, h, self.th1)
             new_data.val[int(i - new_data.frm)] = min(val1, val2, val3)
-        new_data.accept_at = self.dist_class.ubound(h, self.l0 / self.l1, self.th0, self.th1)
+        new_data.accept_at = self.dist_class.ubound(h, self.l0 / self.l1, self.th0, self.th1)+1
         return new_data
 
     def calculate_results(self):
@@ -153,7 +166,7 @@ class StepHelper:
         while True:
             sumold = sum
             sum = sum + incorp(s + k) * self.dist.d(n, s, k)
-            if abs(sum - sumold) < 0.01:
+            if abs(sum - sumold) < 0.000000000001:
                 break
             k = k + 1
             
@@ -165,18 +178,20 @@ class StepHelper:
             sum = self.dist.cdf(
                 min(
                     stepdata.frm - 1 - s,
-                    stepdata.acceptAt - s
-                    )
+                    stepdata.accept_at - s
+                    ),
+                1,
+                self.th
                 )
             
             for k in np.arange(stepdata.frm - s,
                                stepdata.frm - s + stepdata.length, 1):
                 if k >= 0:
                     sum = (sum + 
-                    stepdata.val[k + s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                    stepdata.val[int(k + s - stepdata.frm)] * self.dist.pmf(k, 1, self.th))
                     
         else:
-            sum = self.dist.cdf(stepdata.acceptAt - s, 1, self.th)
+            sum = self.dist.cdf(stepdata.accept_at - s, 1, self.th)
         
         return sum
     
@@ -212,8 +227,10 @@ class StepHelper:
         return res
     
 
-solver = KieferWeissSolver(205, 101.101, 0.2, 0.3, th=0.25, dist_type='binom')
+solver = KieferWeissSolver(49, 59, 0.2, 0.4, th=0.3, dist_type='binom')
 
 t = solver.solve_modified()
 
-print(t[200])
+d = solver.operating_characteristics(t)
+
+print(t[1],d)
