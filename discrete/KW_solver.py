@@ -143,19 +143,20 @@ class KieferWeissSolver:
 
         return self.step_helper.back_step_int_asn(stepdata, 0, th) + 1
 
-    def operating_characteristics(self, test):
+    def operating_characteristics(self, test, th):
         h = len(test)
+        t = test
         stepdata = t[h]
         h = h - 1
 
         while h >= 1:
             for i in np.arange(t[h].frm, t[h].frm + t[h].length):
-                t[h].val[int(i - t[h].frm)] = self.step_helper.back_step_int_oc(stepdata, i)
+                t[h].val[int(i - t[h].frm)] = self.step_helper.back_step_int_oc(stepdata, i, th)
             stepdata = t[h]
             h -= 1
 
 
-        res =  self.step_helper.back_step_int_oc(stepdata, 0)
+        res =  self.step_helper.back_step_int_oc(stepdata, 0, th)
 
         return res
 
@@ -172,13 +173,34 @@ class KieferWeissSolver:
         return new_data
 
     def calculate_results(self):
-        self.solve_original()
-        self.solve_modified()
+        theta, delta = self.solve_original()
+        print(theta)
+        print(delta)
+        test = self.solve_modified(theta)
+        print('modified solved')
         
-        self.avarage_sample_number()
-        self.operating_characteristics()
+        asn = self.average_sample_number(test, theta)
+        print(asn)
+        asn0 = self.average_sample_number(test, self.th0)
+        print(asn0)
+        asn1 = self.average_sample_number(test, self.th1)
+        print(asn1)
+        alpha = 1 - self.operating_characteristics(test, self.th0)
+        print(alpha)
+        beta = self.operating_characteristics(test, self.th1)
+        print(beta)
         
-        res = {}
+        res = {'lambda0': self.l0,
+               'lambda1': self.l1,
+               'theta0': self.th0,
+               'theta1': self.th1,
+               'theta': theta,
+               'asn': asn,
+               'asn0': asn0,
+               'asn1': asn1,
+               'alpha': alpha,
+               'beta': beta,
+               'delta': delta}
         
         return res
 
@@ -230,7 +252,7 @@ class StepHelper:
             
         return sum
      
-    def back_step_int_oc(self, stepdata, s):
+    def back_step_int_oc(self, stepdata, s, th):
         
         if not stepdata.last_step:
             sum = self.dist.cdf(
@@ -239,17 +261,17 @@ class StepHelper:
                     stepdata.accept_at - s
                     ),
                 1,
-                self.th
+                th
                 )
             
             for k in np.arange(stepdata.frm - s,
                                stepdata.frm - s + stepdata.length, 1):
                 if k >= 0:
                     sum = (sum + 
-                    stepdata.val[int(k + s - stepdata.frm)] * self.dist.pmf(k, 1, self.th))
+                    stepdata.val[int(k + s - stepdata.frm)] * self.dist.pmf(k, 1, th))
                     
         else:
-            sum = self.dist.cdf(stepdata.accept_at - s, 1, self.th)
+            sum = self.dist.cdf(stepdata.accept_at - s, 1, th)
         
         return sum
     
@@ -285,10 +307,3 @@ class StepHelper:
         return res
     
 
-solver = KieferWeissSolver(49, 59, 0.2, 0.4, dist_type='binom')
-
-t = solver.solve_original()
-
-
-
-print(t)
