@@ -1,32 +1,105 @@
 from helpers import DistributionController
+from step_data import StepData
 import numpy as np
 
 class KieferWeissSolver:
     
-    def __init__(self, l0, l1, th0, th1, dist_type, horizon, th, cont, accept):
+    
+    
+    def __init__(self, l0, l1, th0, th1, dist_type, size=1, th=None, horizon=None):
         self.l0 = l0
         self.l1 = l1
-        self.th0 = th1
+        self.th0 = th0
         self.th1 = th1
         self.dist_class = DistributionController.get_distribution_handler(dist_type)
-        self.horizon = None
-        self.th = None
+        self.horizon = horizon
+        self.size = size
+        self.th = th
         self.cont = None
         self.accept = None
-        pass
+        self.step_helper = StepHelper(self.l0, self.l1, self.th0, self.th1, self.th, self.dist_class)
+
     
     def solve_original(self):
         pass
     
     def solve_modified(self):
-        pass
-    
+        test = {}
+        if self.th1 > self.th > self.th0:
+            if self.horizon is None:
+                h = self.dist_class.hbound(self.l0, self.l1, self.th0, self.th1, self.th, self.size)
+            else:
+                h = self.horizon
+
+            while (
+                    self.dist_class.lbound(h, self.l1, self.th1, self.th, self.size) >
+                    self.dist_class.ubound(h, self.l0, self.th0, self.th, self.size)
+            ):
+                h -= 1
+
+            idx = 0
+
+            stepdata = StepData(
+                h=h+1,
+                accept_at=self.dist_class.ubound(h + 1, self.l0, self.th0, self.th, self.size),
+                last_step=True
+            )
+            test[h+1] = stepdata
+
+            while True:
+                nocont = True
+                for i in np.arange(
+                        self.dist_class.lbound(h, self.l1, self.th1, self.th, self.size),
+                        self.dist_class.ubound(h, self.l0, self.th0, self.th, self.size) + 1
+                ):
+                    if self.step_helper.step_effect(stepdata, h, i) < 0:
+                        nocont = False
+                        a = i
+                        break
+
+                if nocont:
+                    h -= 1
+                    if h == 0:
+                        raise Exception("Stop after 1 observation")
+                    test = {}
+                    stepdata = StepData(
+                        h=h + 1,
+                        accept_at=self.dist_class.ubound(h, self.l0 / self.l1, self.th0, self.th, self.size),
+                        last_step=True
+                    )
+                    test[h+1] = stepdata
+                    continue
+
+                s = self.dist_class.ubound(h, self.l0, self.th0, self.th, self.size)
+                while self.step_helper.step_effect(stepdata, h, s) >= 0:
+                    s -= 1
+
+                b = s
+                stepdata = self.fill_in(stepdata, a, b, h)
+                test[h] = stepdata
+                if h == 1:
+                    break
+                h -= 1
+
+        return test
+
     def avarage_sample_number(self):
         pass
     
     def operating_characteristics(self):
         pass
-    
+
+
+    def fill_in(self, stepdata, a, b, h):
+        new_data = StepData(h=h, frm=a, length=int(b - a + 1), val=np.zeros(int(b - a + 1)), last_step=False)
+        for i in range(int(new_data.frm), int(new_data.frm + new_data.length)):
+            val1 = self.step_helper.back_step_int(stepdata, h + 1, i) + self.dist_class.pmf(i, h, self.th, self.size)
+            val2 = self.l0 * self.dist_class.pmf(i, h, self.th0)
+            val3 = self.l1 * self.dist_class.pmf(i, h, self.th1)
+            new_data.val[int(i - new_data.frm)] = min(val1, val2, val3)
+        new_data.accept_at = self.dist_class.ubound(h, self.l0 / self.l1, self.th0, self.th1)
+        return new_data
+
     def calculate_results(self):
         self.solve_original()
         self.solve_modified()
@@ -37,12 +110,11 @@ class KieferWeissSolver:
         res = {}
         
         return res
-    
+
+
 class StepHelper:
     
-    def __init__(self, n, s, l0, l1, th0, th1, th, dist):
-        self.n = n
-        self.s = s
+    def __init__(self, l0, l1, th0, th1, th, dist):
         self.l0 = l0
         self.l1 = l1
         self.th0 = th0
@@ -50,29 +122,28 @@ class StepHelper:
         self.th = th
         self.dist = dist
     
-    @staticmethod
-    def back_step_int(self, stepdata):
+    def back_step_int(self, stepdata, n, s):
         
         def incorp(x):
-            if not stepdata.laststep:
+            if not stepdata.last_step:
                 if (
                     x >= stepdata.frm 
                     and 
                     x - stepdata.frm + 1 <= stepdata.length
                     ):
-                    return(stepdata.val[x - stepdata.frm + 1])
+                    return(stepdata.val[int(x - stepdata.frm)])
                 else:
                     return(
                         min(
-                        self.l0 * self.dist.pmf(x, self.n, self.th0), 
-                               self.l1 * self.dist.pmf(x, self.n, self.th1)
+                        self.l0 * self.dist.pmf(x, n, self.th0),
+                               self.l1 * self.dist.pmf(x, n, self.th1)
                                )
                         )
             else:
                 return(
                     min(
-                        self.l0 * self.dist.pmf(x, self.n, self.th0), 
-                        self.l1 * self.dist.pmf(x, self.n, self.th1)
+                        self.l0 * self.dist.pmf(x, n, self.th0),
+                        self.l1 * self.dist.pmf(x, n, self.th1)
                         )
                     )
             
@@ -81,47 +152,46 @@ class StepHelper:
            
         while True:
             sumold = sum
-            sum = sum + incorp(self.s + self.k) * self.dist.d(self.n, self.s, self.k)
-            if(sum == sumold):
+            sum = sum + incorp(s + k) * self.dist.d(n, s, k)
+            if abs(sum - sumold) < 0.01:
                 break
             k = k + 1
             
         return sum
+     
+    def back_step_int_oc(self, stepdata, s):
         
-        def back_step_int_oc(self, stepdata):
-            
-            if not stepdata.laststep:
-                sum = self.dist.cdf(
-                    min(
-                        stepdata.frm - 1 - self.s,
-                        stepdata.acceptAt - self.s
-                        )
+        if not stepdata.last_step:
+            sum = self.dist.cdf(
+                min(
+                    stepdata.frm - 1 - s,
+                    stepdata.acceptAt - s
                     )
-                
-                for k in np.arange(stepdata.frm - self.s,
-                                   stepdata.frm - self.s + stepdata.length, 1):
-                    if k >= 0:
-                        sum = (sum + 
-                        stepdata.val[k + self.s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
-                        
-            else:
-                sum = self.dist.cdf(stepdata.acceptAt - self.s, 1, self.th)
+                )
             
-            return sum
+            for k in np.arange(stepdata.frm - s,
+                               stepdata.frm - s + stepdata.length, 1):
+                if k >= 0:
+                    sum = (sum + 
+                    stepdata.val[k + s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                    
+        else:
+            sum = self.dist.cdf(stepdata.acceptAt - s, 1, self.th)
+        
+        return sum
     
-    @staticmethod
-    def back_step_int_asn(self, stepdata):
-        if not stepdata.laststep:
+    def back_step_int_asn(self, stepdata, s):
+        if not stepdata.last_step:
             k = 0
             sum = 0
             while True:
-                if(k + self.s >= stepdata.frm and 
-                   k + self.s <= stepdata.frm + stepdata.length - 1):
+                if(k + s >= stepdata.frm and
+                   k + s <= stepdata.frm + stepdata.length - 1):
                     
                     sum = (sum +
-                           stepdata.val[k + self.s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
+                           stepdata.val[k + s - stepdata.frm + 1] * self.dist.pmf(k, 1, self.th))
                 
-                if k + self.s >= stepdata.frm + stepdata.length - 1:
+                if k + s >= stepdata.frm + stepdata.length - 1:
                     break
                 k = k + 1
             
@@ -130,30 +200,20 @@ class StepHelper:
         
         return sum
     
-    @staticmethod
-    def step_effect(self, stepdata):
+    def step_effect(self, stepdata, n, s):
         res = (
-        StepHelper.back_step_int(stepdata, self.n + 1, self.s, self.l0, self.l1, self.th0, self.th1) +
-        self.dist.pmf(self.s, self.n, self.th) - 
+        self.back_step_int(stepdata, n + 1, s) +
+        self.dist.pmf(s, n, self.th) -
         min(
-            self.l0 * self.dist.pmf(self.s, self.n, self.th0), 
-            self.l1 * self.dist.pmf(self.s, self.n, self.th1)
+            self.l0 * self.dist.pmf(s, n, self.th0),
+            self.l1 * self.dist.pmf(s, n, self.th1)
            )
              )
         return res
-
-            
     
-                
-                    
-            
-            
-                
-           
-                
-                
-                
-        
-        
-                
-        
+
+solver = KieferWeissSolver(205, 101.101, 0.2, 0.3, th=0.25, dist_type='binom')
+
+t = solver.solve_modified()
+
+print(t[200])
