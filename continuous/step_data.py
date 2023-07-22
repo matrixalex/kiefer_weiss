@@ -1,6 +1,6 @@
 class StepData:
 
-    def __init__(self, n, grid, val):
+    def __init__(self, n = None, grid = None, val = None):
         self.n = n
         self.grid = grid
         self.val = val

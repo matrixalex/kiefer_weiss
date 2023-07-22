@@ -3,7 +3,6 @@ from scipy.optimize import brentq
 import utils as ut
 from scipy.stats import norm
 from scipy.special import erf
-from step_data import StepData
 
 def find_first_continuation_interval(l0, l1, th0, th1, th, n):
 
@@ -93,5 +92,10 @@ def find_continuation_interval(stepdata, l0, l1, th0, th1, th):
     right_solution = brentq(to_solve, c, b)
     
     return np.array([left_solution,  right_solution])
-    
-stepdata = StepData(5, np.array([1,2,3]), np.array([4,5,6]))
+
+def intgr_trapezoidal(spts, vls):
+    x_diff = spts[1:] - spts[:-1]
+    y_diff = vls[1:] + vls[:-1]
+    trapezes = x_diff * y_diff / 2
+    return sum(trapezes)
+                  
