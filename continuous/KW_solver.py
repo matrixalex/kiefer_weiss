@@ -5,8 +5,7 @@ import numpy as np
 
 def modified_kw(l0, l1, th0, th1, th, horizon = 0, precision=0.01):
     if th <= th0 or th >= th1:
-        print("Only case th0 < th < th1 is supported!")
-        return 
+        raise Exception("Only case th0 < th < th1 is supported!")
     
     theor_h = ut.h_theoretical(l0, l1, th0, th1, th)
 
